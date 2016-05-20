@@ -6,9 +6,17 @@
 
 ###Week2.1
  - pycharm 注释多行代码快捷键  ctrl+/ (我为什么记录这么奇怪的知识点）
- - 连接mongo的库的语法
+
+ - 连接mongo的库的语法:
+
     import pymongo
     client = pymongo.MongoClient('localhost',27017)
+
+- 在mongo中筛选函数用for...i..加find，例子：
+
+ >>for i in house_info.find():
+    if i['price'] >= 500:
+        print(i)
 
 [pymongo 常用语法](http://www.myexception.cn/go/2011934.html)
 
