@@ -1,0 +1,29 @@
+from bs4 import BeautifulSoup
+import requests
+import pymongo
+
+client = pymongo.MongoClient('localhost', 27017)
+xiaozhu = client['xiaozhu']
+house_info = xiaozhu['house_info']
+
+#工作流：1列表页中可以直接抓单个房间的标题和价格  2 构建函数能读取任意页码的
+def get_info_pages(numbers):
+    for page_numbers in (1,numbers+1):
+        url = 'http://bj.xiaozhu.com/search-duanzufang-p{}-0/'.format(numbers)
+        wb_data = requests.get(url)
+        soup = BeautifulSoup(wb_data.text,'lxml')
+        titles = soup.select('span.result_title hiddenTxt')
+        prices = soup.select('span.result_price> i')
+
+        for title,price in zip(titles,prices):
+            data = {
+                'title': title.get_text(),
+                'price': int(price.get_text())
+            }
+            house_info.inset_one(data)
+
+get_info_pages(3)
+
+for i in house_info.find():
+    if i['price'] >= 500:
+        print(i)
