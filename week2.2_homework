@@ -1,0 +1,47 @@
+from bs4 import BeautifulSoup
+import requests
+import pymongo
+
+#工作流：1先爬去单个信息的手机号；2 设计函数爬取多页，然后存储在mongo里
+
+client = pymongo.MongoClient('localhost', 27017)
+Shoujihao = client['Shoujihao']
+sjh_info = Shoujihao['sjh_info']
+
+#----------------------------------->>>>抓取单个号码<<<<<----------------------------------
+
+url = 'http://bj.58.com/shoujihao/'
+wb_data = requests.get(url)
+soup = BeautifulSoup(wb_data.text, 'lxml')
+
+numbers = soup.select('strong.number')
+prices = soup.select('b.price')
+links = soup.select('a.t')
+
+for number, price, link in zip(numbers,prices,links):
+    data = {
+        'number':number.get_text(),
+        'price':price.get_text(),
+        'link': links.get('href')
+    }
+    sjh_info.insert_one(data)
+print('Done')
+
+#----------------------------------->>>>设计函数抓取多个手机号<<<<<----------------------------------
+def get_links_number (pages):
+    for page_num in range(1,pages+1):
+        wb_data = requests.get('http://bj.58.com/shoujihao/1/pn{}/'.format(page_num))
+        soup = BeautifulSoup(wb_data.text,'lxml')
+        numbers =soup.select('strong.number')
+        prices = soup.select('b.price')
+        links = soup.select('a.t')
+        
+        
+        for number, price, link in zip(numbers,prices,links):
+            data={
+                'number':number.get_text(),
+                'price':price.get_text(),
+                'link':link.get('href')
+            }
+            sjh_info.insert_one(data)
+        print('Done')
